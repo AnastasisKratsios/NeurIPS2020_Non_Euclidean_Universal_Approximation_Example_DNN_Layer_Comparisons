@@ -1,9 +1,9 @@
 \begin{tabular}{lrrrr}
 \toprule
-{} &     Good I &       Good II &       Bad &     Vanilla \\
+{} &     Good I &    Good II &       Bad &    Vanilla \\
 \midrule
-MAE  &   1.062052 &      2.086397 &  2.073648 &    1.151422 \\
-MSE  &   2.259830 &      5.699560 &  5.637205 &    2.598474 \\
-MAPE &  75.452621 &  27103.557780 &       inf &  101.108141 \\
+MAE  &   0.516124 &   0.757214 &  2.073648 &   0.505022 \\
+MSE  &   0.485309 &   1.067507 &  5.637205 &   0.523894 \\
+MAPE &  25.903376 &  60.874648 &       inf &  28.069414 \\
 \bottomrule
 \end{tabular}
