@@ -26,19 +26,19 @@ if train_mode == True:
     # Hyperparameter Grid (Readout)
     #------------------------------#
     param_grid_Vanilla_Nets = {'batch_size': [8],
-                        'epochs': [50],
+                        'epochs': [1],
                           'learning_rate': [0.001],
-                          'height': [20],
-                           'depth': [2],
+                          'height': [2],
+                           'depth': [1],
                           'input_dim':[10],
                            'output_dim':[1]}
 
     param_grid_Nice_Nets = {'batch_size': [8],
-                        'epochs': [50],
+                        'epochs': [1],
                           'learning_rate': [0.001],
-                          'height': [20],
-                            'Depth_Feature_Map': [2],
-                            'Depth_Readout_Map': [2],
+                          'height': [2],
+                            'Depth_Feature_Map': [1],
+                            'Depth_Readout_Map': [1],
                           'input_dim':[10],
                            'output_dim':[1]}
 
@@ -55,16 +55,16 @@ else:
     param_grid_Vanilla_Nets = {'batch_size': [16,32,64],
                         'epochs': [200, 400, 800, 1000, 1200, 1600],
                           'learning_rate': [0.0001,0.0005,0.005],
-                          'height': [1,50,75, 100,125, 150,175,200],
-                           'depth': [1,2,3,4],
+                          'height': [1,50,75, 100,125],
+                           'depth': [1,2],
                           'input_dim':[10],
                            'output_dim':[1]}
 
     param_grid_Nice_Nets = {'batch_size': [16,32,64],
                         'epochs': [2, 400, 800, 1000, 1200, 1600],
                           'learning_rate': [0.0001,0.0005,0.005],
-                          'height': [1,50,75, 100,125, 150,175,200],
-                            'Depth_Feature_Map': [1,2,3,4],
-                            'Depth_Readout_Map': [1,2,3,4],
+                          'height': [1,50,75, 100,125],
+                            'Depth_Feature_Map': [1,2,3,4,5,6],
+                            'Depth_Readout_Map': [1,2,3,4,5,6],
                               'input_dim':[10],
                                'output_dim':[1]}

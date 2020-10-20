@@ -10,7 +10,7 @@
 # In[1]:
 
 
-train_mode = True 
+train_mode = False 
 
 
 # ## Preping
