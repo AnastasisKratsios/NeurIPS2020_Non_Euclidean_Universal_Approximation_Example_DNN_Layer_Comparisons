@@ -2,6 +2,16 @@
 # coding: utf-8
 
 # # **Example for Paper**: [Non-Euclidean Universal Approximation](https://arxiv.org/abs/2006.02341)
+# ---
+
+# ### Mode:
+# Use this to test script before running with "train_mode" $\triangleq$ False.
+
+# In[1]:
+
+
+train_mode = True 
+
 
 # ## Preping
 # 
@@ -11,13 +21,17 @@
 # - **Vanilla model**: is a naive feed-forward benchmark
 # #### Import Libraries
 
-# In[1]:
+# In[2]:
 
+
+# Alert(s)
+import smtplib
 
 # CV
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
+from sklearn.preprocessing import LabelBinarizer
 
 # DL: Tensorflow
 import tensorflow as tf
@@ -46,6 +60,11 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn import preprocessing
+from scipy.special import expit
+
+# Random Forest & Gradient Boosting (Arch. Construction)
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.tree import DecisionTreeRegressor
 
 # Structuring
 from pathlib import Path
@@ -63,6 +82,7 @@ import time
 # Misc
 import gc
 from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LinearRegression
 import os
 
 # Set-Seed
@@ -71,20 +91,20 @@ np.random.seed(2020)
 
 # #### Load Externally-Defined Functions
 
-# In[2]:
+# In[3]:
 
 
 # Main Training Utility
-exec(open('TCP_Util.py').read())
+exec(open('Helper_Utility.py').read())
 # Helper Functions Utility
 exec(open('Optimal_Deep_Feature_and_Readout_Util.py').read())
 # Extra Utilities
-exec(open('Grid_Enhanced_Network.py').read())
+exec(open('Hyperparameter_Grid.py').read())
 
 
 # #### Load Data
 
-# In[3]:
+# In[4]:
 
 
 # load dataset
@@ -97,21 +117,34 @@ X_train, y_train, X_test, y_test= prepare_data(data_path, True)
 
 # #### Check and Make Paths
 
-# In[4]:
+# In[5]:
 
 
 Path('./outputs/models/').mkdir(parents=True, exist_ok=True)
-Path('./outputs/models/Vanilla/').mkdir(parents=True, exist_ok=True)
-Path('./outputs/models/Deep_Features/').mkdir(parents=True, exist_ok=True)
+Path('./outputs/models/Benchmarks/Vanilla/').mkdir(parents=True, exist_ok=True)
+Path('./outputs/models/Benchmarks/Bad/').mkdir(parents=True, exist_ok=True)
+Path('./outputs/models/Deep_Features/Good_I/').mkdir(parents=True, exist_ok=True)
+Path('./outputs/models/Deep_Features/Good_II/').mkdir(parents=True, exist_ok=True)
 Path('./outputs/tables/').mkdir(parents=True, exist_ok=True)
 Path('./outputs/results/').mkdir(parents=True, exist_ok=True)
 
 
+# #### Set Seed(s):
+
+# In[20]:
+
+
+# Set seed Tensorflow:
+tf.random.set_seed(2020)
+# Set seed Numpy:
+np.random.seed(2020)
+
+
 # ---
 # ---
 # ---
 
-# # Good Model:
+# # Good Model $I$:
 # Build and train the good model:
 # $$
 # \rho \circ f\circ \phi:\mathbb{R}^m\rightarrow \mathbb{R}^n.
@@ -125,7 +158,7 @@ Path('./outputs/results/').mkdir(parents=True, exist_ok=True)
 # 
 # The matrices $\exp(A_i)$, and $\exp(\tilde{A}_i)$ are therefore invertible since $\exp$ maps any square matrix into the associated [General Linear Group](https://en.wikipedia.org/wiki/General_linear_group).  
 
-# In[5]:
+# In[6]:
 
 
 #------------------------------------------------------------------------------------------------#
@@ -167,7 +200,7 @@ def def_trainable_layers_Nice_Input_Output(height, Depth_Feature_Map, Depth_Read
     #------------------#   
     for i_depth_readout in range(Depth_Readout_Map):
         # First Layer
-        if i_feature_depth == 0:
+        if i_depth_readout == 0:
             output_layers = fullyConnected_Dense_Invertible(output_dim)(output_layers)
             output_layers = tf.nn.leaky_relu(output_layers)
         else:
@@ -218,19 +251,219 @@ def build_and_predict_nice_model(n_folds , n_jobs):
 
 # Update User
 #-------------#
-print('Built Model')
+print('Built Mode: <Good I>')
 
 
 # ### Make Predictions
 
-# In[ ]:
+# In[7]:
 
 
 # Initialize & User Updates
 #--------------------------#
 y_hat_train_good, y_hat_test_good = build_and_predict_nice_model(n_folds = 2, n_jobs = 2)
-print('Cross-Validated: Good Model')
+print('Cross-Validated Model: <Good I>')
 
+
+# # Good Model $II$:
+# Build and train the good model:
+# $$
+# \rho \circ f\circ (x,\phi_{\operatorname{Random}}(x)):\mathbb{R}^m\rightarrow \mathbb{R}^n.
+# $$
+#  - $f$ is a shallow feed-forward network with ReLU activation.  
+#  - Readout: $\rho(x) = \operatorname{Leaky-ReLU}\bullet (\exp(\tilde{A}_n)x+\tilde{b}_n)\circ \dots \circ \operatorname{Leaky-ReLU}\bullet (\exp(\tilde{A}_1)x+\tilde{b}_1)$
+#  - Feature Map: $\phi_{\operatorname{Random}}(x) = \operatorname{Leaky-ReLU}\bullet (\exp(A_n)x+b_n)\circ \dots \circ\operatorname{Leaky-ReLU}\bullet (\exp(A_1)x+b_1)$,
+# 
+# where $A_i,\tilde{A}_j$ are square matrices, and $A_i,b_i$ are generated randomly by drawing their components from the standardized Bernoulli distribution.
+# 
+# 
+# The matrices $\exp(A_i)$, and $\exp(\tilde{A}_i)$ are therefore invertible since $\exp$ maps any square matrix into the associated [General Linear Group](https://en.wikipedia.org/wiki/General_linear_group).  
+
+# ## Generate Random Deep Feature(s)
+
+# In[8]:
+
+
+### Initialize Parameters
+#------------------------#
+# Initialize History
+Randomized_Depth = np.random.poisson(2)
+past_val = -1
+current_position = 0
+# Initalize Features
+X_train_features = X_train
+X_test_features = X_test
+
+# Construct Deep Randomized Features
+#------------------------------------#
+# Set Seed
+np.random.seed(2020)
+
+
+# Builds Features
+for i in range(N_Features):    
+    # Transformations
+    #-----------------#
+    # Build
+    if Randomized_Depth > 0:
+        # Note: Write Non-Liearly Transformed Features only if transformation has been applied, only if Depth >0
+        
+        # Apply Activation
+        X_train_features_loop = compositer(X_train_features)
+        X_test_features_loop = compositer(X_test_features)
+        # Apply Random Weights
+        Weights_random = (np.random.binomial(1,.5,(X_train_features_loop.shape[1],X_train_features_loop.shape[1])) - .5)*2 # Generate Random Weights
+        X_train_features_loop = np.matmul(X_train_features_loop,Weights_random)
+        X_test_features_loop = np.matmul(X_test_features_loop,Weights_random)
+        # # Apply Bias
+        biases_random = (np.random.binomial(1,.5,X_train_features_loop.shape[1]) -.5)*2         # Generate Random Weights and Biases from Recentered Binomial Law
+        X_train_features_loop = X_train_features_loop + biases_random
+        X_test_features_loop = X_test_features_loop + biases_random
+        
+    else:
+        X_train_features_loop = X_train_features
+        X_test_features_loop = X_test_features
+
+    # Update User #
+    #-------------#
+    print("Current Step: " +str((i+1)/N_Features))
+    
+# Coerce into nice form:
+X_train_features = pd.DataFrame(X_train_features)
+X_test_features = pd.DataFrame(X_test_features)
+X_train.reset_index(drop=True, inplace=True)
+X_train_features.reset_index(drop=True, inplace=True)
+X_test.reset_index(drop=True, inplace=True)
+X_test_features.reset_index(drop=True, inplace=True)
+
+# Create Features
+Random_Feature_Space_train = pd.concat([X_train,X_train_features],axis=1)
+Random_Feature_Space_test = pd.concat([X_test,X_test_features],axis=1)
+
+# Update User #
+#-------------#
+print('Generated Features: Done!')
+print(Random_Feature_Space_train.head())
+print(Random_Feature_Space_test.head())
+
+
+# ## Train DNN Model
+
+# In[9]:
+
+
+# Reload Grid
+exec(open('Hyperparameter_Grid.py').read())
+# Adjust Input Space's Dimension
+param_grid_Nice_Nets['input_dim'] = [Random_Feature_Space_train.shape[1]]
+
+def def_trainable_layers_Randomized_Feature(height, Depth_Feature_Map, Depth_Readout_Map, learning_rate, input_dim, output_dim):
+    #----------------------------#
+    # Maximally Interacting Layer #
+    #-----------------------------#
+    # Initialize Inputs
+    input_layer = tf.keras.Input(shape=(input_dim,))
+    
+    
+    #------------------#
+    #   Core Layers    #
+    #------------------#
+    core_layers = fullyConnected_Dense(height)(input_layer)
+    # Activation
+    core_layers = tf.nn.relu(core_layers)
+    # Affine Layer (Dense Fully Connected)
+    output_layers = fullyConnected_Dense(output_dim)(core_layers)
+    
+    
+    #------------------#
+    #  Readout Layers  #
+    #------------------#   
+#     for i_depth_readout in range(Depth_Readout_Map):
+#         # First Layer
+#         if i_depth_readout == 0:
+#             output_layers = fullyConnected_Dense_Invertible(output_dim)(output_layers)
+#             output_layers = tf.nn.leaky_relu(output_layers)
+#         else:
+#             output_layers = fullyConnected_Dense_Invertible(output_dim)(output_layers)
+#             output_layers = tf.nn.leaky_relu(output_layers)
+    
+    
+    # Define Input/Output Relationship (Arch.)
+    trainable_layers_model = tf.keras.Model(input_layer, output_layers)
+    
+    
+    #----------------------------------#
+    # Define Optimizer & Compile Archs.
+    #----------------------------------#
+    opt = Adam(lr=learning_rate)
+    trainable_layers_model.compile(optimizer=opt, loss="mae", metrics=["mse", "mae", "mape"])
+
+    return trainable_layers_model
+
+#------------------------------------------------------------------------------------------------#
+#                                      Build Predictive Model                                    #
+#------------------------------------------------------------------------------------------------#
+
+def build_and_predict_nice_modelII(n_folds , n_jobs):
+
+    # Deep Feature Network
+    Nice_Model_CV = tf.keras.wrappers.scikit_learn.KerasRegressor(build_fn=def_trainable_layers_Randomized_Feature, verbose=True)
+    
+    # Randomized CV
+    Nice_Model_CVer = RandomizedSearchCV(estimator=Nice_Model_CV, 
+                                    n_jobs=n_jobs,
+                                    cv=KFold(CV_folds, random_state=2020, shuffle=True),
+                                    param_distributions=param_grid_Nice_Nets,
+                                    n_iter=n_iter,
+                                    return_train_score=True,
+                                    random_state=2020,
+                                    verbose=10)
+    
+    # Fit
+    Nice_Model_CVer.fit(Random_Feature_Space_train,y_train)
+
+    # Write Predictions
+    y_hat_train = Nice_Model_CVer.predict(Random_Feature_Space_train)
+    y_hat_test = Nice_Model_CVer.predict(Random_Feature_Space_test)
+    
+    # Return Values
+    return y_hat_train, y_hat_test
+
+# Update User
+#-------------#
+print('Built Mode: <Good II>')
+
+
+# ### Make Predictions
+
+# In[10]:
+
+
+# Initialize & User Updates
+#--------------------------#
+y_hat_train_goodII, y_hat_test_goodII = build_and_predict_nice_modelII(n_folds = 2, n_jobs = 2)
+print('Cross-Validated Model: "Good II"')
+
+
+# ---
+# ---
+# ---
+
+# ---
+# # Benchmark(s)
+# ---
+
+# #### Reload CV Grid
+
+# In[11]:
+
+
+exec(open('Hyperparameter_Grid.py').read())
+
+
+# ---
+# ---
+# ---
 
 # # Bad Model:
 # Build and train the *bad* model:
@@ -245,14 +478,14 @@ print('Cross-Validated: Good Model')
 # 
 # *Note*:  The key point here is that the input and output maps are forced to be of the same dimension.  Note that, this also violates the minimal bounds derivated in [this paper](https://arxiv.org/abs/1710.11278) for deep ReLU networks.  
 
-# In[ ]:
+# In[12]:
 
 
 #------------------------------------------------------------------------------------------------#
 #                                      Define Predictive Model                                   #
 #------------------------------------------------------------------------------------------------#
 
-def def_trainable_layers_Bad_Input_Output(height, Depth_Feature_Map, Depth_Readout_Map, learning_rate, input_dim, output_dim):
+def def_trainable_layers_Bad_Input_Output(height, Depth_Feature_Map, Depth_Readout_Map, learning_rate, input_dim,output_dim):
     #----------------------------#
     # Maximally Interacting Layer #
     #-----------------------------#
@@ -287,7 +520,7 @@ def def_trainable_layers_Bad_Input_Output(height, Depth_Feature_Map, Depth_Reado
     #------------------#   
     for i_depth_readout in range(Depth_Readout_Map):
         # First Layer
-        if i_feature_depth == 0:
+        if i_depth_readout == 0:
             output_layers = fullyConnected_Dense(output_dim)(output_layers)
             output_layers = tf.nn.relu(output_layers)
         else:
@@ -341,18 +574,22 @@ def build_and_predict_bad_model(n_folds , n_jobs):
 print('Built Bad Model')
 
 
-# In[ ]:
+# In[13]:
 
 
 # Initialize & User Updates
 #--------------------------#
 y_hat_train_bad, y_hat_test_bad = build_and_predict_bad_model(n_folds = 2, n_jobs = 2)
-print('Cross-Validated: Vanilla Model')
+print('Cross-Validated: Bad Model')
 
 
-# # Vanilla Model
+# ---
 
-# In[ ]:
+# # Benchmark ffNN Model (Vanilla)
+
+# ---
+
+# In[14]:
 
 
 #------------------------------------------------------------------------------------------------#
@@ -424,7 +661,7 @@ print('Built Vanilla Model')
 
 # ### Make Predictions
 
-# In[ ]:
+# In[15]:
 
 
 # Initialize & User Updates
@@ -436,59 +673,84 @@ print('Cross-Validated: Vanilla Model')
 # # Record Predictions/ Comparisons
 # Generate Classes
 
-# In[ ]:
+# In[16]:
 
 
-# Results with Nice Model
-#------------------------#
-Train_Good = y_hat_train_good - y_train
-Test_Good = y_hat_test_good - y_test
-score_Train_good = np.mean(np.abs(Train_Good))
-score_Test_good = np.mean(np.abs(Test_Good))
+# Benchmark Models #
+#------------------#
+# Results with Good I Model
+Perform_GoodI = reporter(y_hat_train_good,y_hat_test_good,y_train,y_test)
+# Results with Good II Model
+Perform_GoodII = reporter(y_hat_train_goodII,y_hat_test_goodII,y_train,y_test)
 
+
+# Benchmark Models Performance #
+#------------------------------#
 # Results with Bad Model
-#-----------------------#
-Train_Bad = y_hat_train_bad - y_train
-Test_Bad = y_hat_test_bad - y_test
-score_Train_bad = np.mean(np.abs(Train_Bad))
-score_Test_bad = np.mean(np.abs(Test_Bad))
-
-# # Results Vanilla #
-# #-----------------#
-Train_Vanilla = y_hat_train_Vanilla - y_train
-Test_Vanilla = y_hat_test_Vanilla - y_test
-score_Train_Vanilla = np.mean(np.abs(Train_Vanilla))
-score_Test_Vanilla = np.mean(np.abs(Test_Vanilla))
+Perform_Bad = reporter(y_hat_train_bad,y_hat_test_bad,y_train,y_test)
+# Results Vanilla
+Perform_Vanilla = reporter(y_hat_train_Vanilla,y_hat_test_Vanilla,y_train,y_test)
 
 
-# In[ ]:
+# In[17]:
 
 
 # Performance Metrics
 #----------------------#
-performance_out = pd.DataFrame({
-'Good': np.array([np.mean(score_Train_good),np.mean(score_Test_good)]),
-'Bad': np.array([np.mean(score_Train_bad),np.mean(score_Test_bad)]),
-'Vanilla': np.array([np.mean(score_Train_Vanilla),np.mean(score_Test_Vanilla)])
-},index=['MAE: Train','MAE: Test'])
+performance_train = pd.DataFrame({
+                    'Good I': Perform_GoodI.train,
+                    'Good II': Perform_GoodII.train,
+                    'Bad': Perform_Bad.train,
+                    'Vanilla': Perform_Vanilla.train})
+
+performance_test = pd.DataFrame({
+                    'Good I': Perform_GoodI.test,
+                    'Good II': Perform_GoodII.test,
+                    'Bad': Perform_Bad.test,
+                    'Vanilla': Perform_Vanilla.test})
 
 # Write Results
 #---------------#
 # LaTeX
-performance_out.to_latex('./outputs/results/Performance.txt')
+performance_train.to_latex('./outputs/results/Performance_train.txt')
+performance_test.to_latex('./outputs/results/Performance_test.txt')
 # Write to Txt
-cur_path = os.path.expanduser('./outputs/results/Performance_text.txt')
+cur_path = os.path.expanduser('./outputs/results/Performance_train_text.txt')
 with open(cur_path, "w") as f:
-    f.write(str(performance_out))
+    f.write(str(performance_train))
+cur_path = os.path.expanduser('./outputs/results/Performance_test_text.txt')
+with open(cur_path, "w") as f:
+    f.write(str(performance_test))
 
 
 # # Live Readings
 
-# In[ ]:
+# In[18]:
 
 
 print('Et-Voila!')
-print(performance_out)
+print(' ')
+print(' ')
+print('#-------------------#')
+print(' PERFORMANCE SUMMARY:')
+print('#-------------------#')
+print(' ')
+print(' ')
+print('---------------------')
+print('Training Performance')
+print('---------------------')
+print('-------------------------------------------------------------')
+print(performance_train)
+print('-------------------------------------------------------------')
+print('---------------------')
+print('Testing Performance')
+print('---------------------')
+print('-------------------------------------------------------------')
+print(performance_test)
+print('-------------------------------------------------------------')
+print(' ')
+print(' ')
+print('😊😊 Fin 😊😊')
 
 
 # ---
