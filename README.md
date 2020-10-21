@@ -64,3 +64,18 @@ The house prices were multiplied by $10^{-5}$ to avoid exploding gradient issues
 
 ---
 Hyperparameter Grid Used in Training for the paper ["Non-Euclidean Universal Approximation"](https://arxiv.org/abs/2006.02341)
+
+| Batch size | Epochs | Learning Rate | Height (Middle Layers) | Depth - Input Layers | Depth - Middle Layers | Depth - Output Layers |
+|------------|--------|---------------|------------------------|----------------------|-----------------------|-----------------------|
+|     16     |  200   |    0.0001     |         200            |          2           |           1           |            2          |
+|      32    |  400   |    0.0005     |         250            |          3           |           2           |            3          |
+|     -      |  800   |    0.005      |         400            |          4           |           -           |            4          |
+|     -      |  1000  |      -        |         600            |          5           |           -           |            5          |
+|     -      |  1200  |      -        |         800            |          -           |           -           |            -          |
+|     -      |  -     |      -        |        1000            |          -           |           -           |            -          |
+
+
+### Meta-parameters Used:
+- n_jobs = 70 (Number of cores used in training).
+- n_iter = 10 (The number of cross-validation iterations used/per model when performing the grid-search).
+- CV_folds = 4 (The number of cross-validation folds used).
