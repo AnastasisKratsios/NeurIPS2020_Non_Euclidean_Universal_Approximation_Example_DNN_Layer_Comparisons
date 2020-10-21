@@ -15,7 +15,14 @@ conda create python=3.8 --name architopes \
 conda activate architopes \
 pip install -r requirements.txt
 ```
+---
 
+## Organization of directory:
+ - Data in the "inputs" sub-directory,
+ - All model outputs go to the "outputs" subdirectory,
+ - Jupyternotebook versions of the python files are found in the "Jupyternote book" subdirectory.  
+
+---
 
 ## Preprocessing, Training, and Evaluating
 1. Specify the parameters related to each set and the space of hyper parameters in: Hyperparameter_Grid.py 
@@ -23,6 +30,7 @@ pip install -r requirements.txt
 2. Preprocessing data, train models and obtaining predictions can all be done by executing the following command:
 python3.8 Example.py
 
+---
 
 ## Results
 
