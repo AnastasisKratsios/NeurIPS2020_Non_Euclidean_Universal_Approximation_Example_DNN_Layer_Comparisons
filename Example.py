@@ -7,13 +7,52 @@
 # ### Mode:
 # Use this to test script before running with "train_mode" $\triangleq$ False.
 
-# In[1]:
+# In[8]:
 
 
-train_mode = False 
+train_mode = True 
 
 
-# ## Preping
+# ### Meta-parameters
+
+# In[9]:
+
+
+# Test-size Ratio
+test_size_ratio = 0.3
+min_height = 50
+
+
+# In[10]:
+
+
+# load dataset
+results_path = "./outputs/models/"
+results_tables_path = "./outputs/results/"
+raw_data_path_folder = "./inputs/raw/"
+data_path_folder = "./inputs/data/"
+
+
+# ### Imports
+
+# In[11]:
+
+
+# Load Packages/Modules
+exec(open('Init_Dump.py').read())
+# Load Hyper-parameter Grid
+exec(open('Hyperparameter_Grid.py').read())
+# Load Helper Function(s)
+exec(open('Helper_Functions.py').read())
+exec(open('Helper_Utility.py').read())
+exec(open('Optimal_Deep_Feature_and_Readout_Util.py').read())
+# Pre-process Data
+exec(open('Prepare_Data_California_Housing.py').read())
+# Import time separately
+import time
+
+
+# ## Preparing
 # 
 # We compare three models in this implementation.  Each are feed-forward networks of the same dimensions:
 # - **Good model**: repsects our assumptions
@@ -21,117 +60,9 @@ train_mode = False
 # - **Vanilla model**: is a naive feed-forward benchmark
 # #### Import Libraries
 
-# In[2]:
-
-
-# Alert(s)
-import smtplib
-
-# CV
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import KFold
-from sklearn.preprocessing import LabelBinarizer
-
-# DL: Tensorflow
-import tensorflow as tf
-from keras.utils.layer_utils import count_params
-from tensorflow.python.framework import ops # Custome Tensorflow Functions
-from tensorflow.keras.models import Sequential, Model
-from sklearn.model_selection import StratifiedKFold
-from tensorflow.keras.layers import Dense, Input
-# DL: Tensorflow - Keras
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.wrappers.scikit_learn import KerasRegressor
-from keras.wrappers.scikit_learn import KerasClassifier
-from keras import backend as K
-
-# Evaluation
-from sklearn.metrics import mean_absolute_error, mean_squared_error
-
-# Formatting:
-import pandas as pd
-import numpy as np
-
-# Pre-Processing
-from sklearn.model_selection import train_test_split
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.preprocessing import StandardScaler
-from sklearn import preprocessing
-from scipy.special import expit
-
-# Random Forest & Gradient Boosting (Arch. Construction)
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.tree import DecisionTreeRegressor
-
-# Structuring
-from pathlib import Path
-
-# Visulatization
-import matplotlib.pyplot as plt
-
-# Writing, Reading, Exporting, and Importing
-#from sklearn.externals import joblib
-import pickle
-
-# Timing
-import time
-
-# Misc
-import gc
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LinearRegression
-import os
-
-# Set-Seed
-np.random.seed(2020)
-
-
-# #### Load Externally-Defined Functions
-
-# In[3]:
-
-
-# Main Training Utility
-exec(open('Helper_Utility.py').read())
-# Helper Functions Utility
-exec(open('Optimal_Deep_Feature_and_Readout_Util.py').read())
-# Extra Utilities
-exec(open('Hyperparameter_Grid.py').read())
-
-
-# #### Load Data
-
-# In[4]:
-
-
-# load dataset
-data_path = "./data/housing_complete.csv"
-X = pd.read_csv(data_path)
-
-# Parse/Prepare Data
-X_train, y_train, X_test, y_test= prepare_data(data_path, True)
-
-
-# #### Check and Make Paths
-
-# In[5]:
-
-
-Path('./outputs/models/').mkdir(parents=True, exist_ok=True)
-Path('./outputs/models/Benchmarks/Vanilla/').mkdir(parents=True, exist_ok=True)
-Path('./outputs/models/Benchmarks/Bad/').mkdir(parents=True, exist_ok=True)
-Path('./outputs/models/Deep_Features/Good_I/').mkdir(parents=True, exist_ok=True)
-Path('./outputs/models/Deep_Features/Good_II/').mkdir(parents=True, exist_ok=True)
-Path('./outputs/tables/').mkdir(parents=True, exist_ok=True)
-Path('./outputs/results/').mkdir(parents=True, exist_ok=True)
-
-
 # #### Set Seed(s):
 
-# In[20]:
+# In[12]:
 
 
 # Set seed Tensorflow:
@@ -158,7 +89,7 @@ np.random.seed(2020)
 # 
 # The matrices $\exp(A_i)$, and $\exp(\tilde{A}_i)$ are therefore invertible since $\exp$ maps any square matrix into the associated [General Linear Group](https://en.wikipedia.org/wiki/General_linear_group).  
 
-# In[6]:
+# In[13]:
 
 
 #------------------------------------------------------------------------------------------------#
@@ -256,12 +187,12 @@ print('Built Mode: <Good I>')
 
 # ### Make Predictions
 
-# In[7]:
+# In[14]:
 
 
 # Initialize & User Updates
 #--------------------------#
-y_hat_train_good, y_hat_test_good = build_and_predict_nice_model(n_folds = 2, n_jobs = 2)
+y_hat_train_good, y_hat_test_good = build_and_predict_nice_model(n_folds = n_jobs, n_jobs = n_jobs)
 print('Cross-Validated Model: <Good I>')
 
 
@@ -281,7 +212,7 @@ print('Cross-Validated Model: <Good I>')
 
 # ## Generate Random Deep Feature(s)
 
-# In[8]:
+# In[15]:
 
 
 ### Initialize Parameters
@@ -349,7 +280,7 @@ print(Random_Feature_Space_test.head())
 
 # ## Train DNN Model
 
-# In[9]:
+# In[16]:
 
 
 # Reload Grid
@@ -436,12 +367,12 @@ print('Built Mode: <Good II>')
 
 # ### Make Predictions
 
-# In[10]:
+# In[17]:
 
 
 # Initialize & User Updates
 #--------------------------#
-y_hat_train_goodII, y_hat_test_goodII = build_and_predict_nice_modelII(n_folds = 2, n_jobs = 2)
+y_hat_train_goodII, y_hat_test_goodII = build_and_predict_nice_modelII(n_folds = n_folds, n_jobs = n_jobs)
 print('Cross-Validated Model: "Good II"')
 
 
@@ -455,7 +386,7 @@ print('Cross-Validated Model: "Good II"')
 
 # #### Reload CV Grid
 
-# In[11]:
+# In[18]:
 
 
 exec(open('Hyperparameter_Grid.py').read())
@@ -478,7 +409,7 @@ exec(open('Hyperparameter_Grid.py').read())
 # 
 # *Note*:  The key point here is that the input and output maps are forced to be of the same dimension.  Note that, this also violates the minimal bounds derivated in [this paper](https://arxiv.org/abs/1710.11278) for deep ReLU networks.  
 
-# In[12]:
+# In[19]:
 
 
 #------------------------------------------------------------------------------------------------#
@@ -574,12 +505,12 @@ def build_and_predict_bad_model(n_folds , n_jobs):
 print('Built Bad Model')
 
 
-# In[13]:
+# In[20]:
 
 
 # Initialize & User Updates
 #--------------------------#
-y_hat_train_bad, y_hat_test_bad = build_and_predict_bad_model(n_folds = 2, n_jobs = 2)
+y_hat_train_bad, y_hat_test_bad = build_and_predict_bad_model(n_folds = n_iter, n_jobs = n_jobs)
 print('Cross-Validated: Bad Model')
 
 
@@ -589,7 +520,7 @@ print('Cross-Validated: Bad Model')
 
 # ---
 
-# In[14]:
+# In[22]:
 
 
 #------------------------------------------------------------------------------------------------#
@@ -661,19 +592,19 @@ print('Built Vanilla Model')
 
 # ### Make Predictions
 
-# In[15]:
+# In[23]:
 
 
 # Initialize & User Updates
 #--------------------------#
-y_hat_train_Vanilla, y_hat_test_Vanilla = build_and_predict_Vanilla_model(n_folds = 2, n_jobs = 2)
+y_hat_train_Vanilla, y_hat_test_Vanilla = build_and_predict_Vanilla_model(n_folds = n_jobs, n_jobs = n_jobs)
 print('Cross-Validated: Vanilla Model')
 
 
 # # Record Predictions/ Comparisons
 # Generate Classes
 
-# In[16]:
+# In[24]:
 
 
 # Benchmark Models #
@@ -692,7 +623,7 @@ Perform_Bad = reporter(y_hat_train_bad,y_hat_test_bad,y_train,y_test)
 Perform_Vanilla = reporter(y_hat_train_Vanilla,y_hat_test_Vanilla,y_train,y_test)
 
 
-# In[17]:
+# In[25]:
 
 
 # Performance Metrics
@@ -725,7 +656,7 @@ with open(cur_path, "w") as f:
 
 # # Live Readings
 
-# In[18]:
+# In[26]:
 
 
 print('Et-Voila!')
