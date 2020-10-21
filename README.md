@@ -1,4 +1,7 @@
 # NeurIPS - 2020: [Non Euclidean Universal Approximation](https://arxiv.org/abs/2006.02341)
+By:
+- [Anastasis Kratsios](https://people.math.ethz.ch/~kratsioa/)
+- [Ievgen Bilokopytov](https://apps.ualberta.ca/directory/person/bilokopy)
 ### Numerical Example: *DNN Layer Constrution using our Theory vs. DNN Layer Construction Failing Assumptions(s).*
 
 ---
