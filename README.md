@@ -1,5 +1,5 @@
 # NeurIPS - 2020: Non Euclidean Universal Approximation
-## Numerical Example: DNN Layer Constrution using our Theory vs. DNN Layer Construction Failing Assumptions(s).
+### Numerical Example: *DNN Layer Constrution using our Theory vs. DNN Layer Construction Failing Assumptions(s).*
 
 ---
 
@@ -42,10 +42,12 @@ The house prices were multiplied by 10^(-5) to avoid exploding gradient issues.
 
 1. For Test:
 
-       Good I(*)  Good II(†)      Bad    Vanilla
-MAE    0.317888   0.319974   0.875507   0.320133
-MSE    0.247136   0.258657   1.354547   0.257305
-MAPE  16.714252  17.626384  48.051326  17.427648
+
+|    |  Good I(*) | Good II(†) |     Bad  | Vanilla   |
+|--- |------------| ---------- |--------- |---------- |
+| MAE    | 0.317888   | 0.319974   | 0.875507   | 0.320133 |
+| MSE    | 0.247136   | 0.258657   | 1.354547   | 0.257305 |
+| MAPE  | 16.714252  | 17.626384  | 48.051326  | 17.427648 |
 
 
 
