@@ -30,7 +30,7 @@ Our models and their benchmarks achieves the following performance on:
 
 ### [California Housing Price Dataset](https://github.com/ageron/handson-ml/tree/master/datasets/housing)
 
-The house prices were multiplied by 10^(-5) to avoid exploding gradient issues.
+The house prices were multiplied by $10^{-5}$ to avoid exploding gradient issues.
 
 1. For Train:
 
