@@ -61,3 +61,6 @@ The house prices were multiplied by $10^{-5}$ to avoid exploding gradient issues
 
 (*) Notation: In the paper "Good" is used to denote "Good I".
 (†) Notation: In the paper "Rand" is used to denote "Good II".
+
+---
+Hyperparameter Grid Used in Training for the paper ["Non-Euclidean Universal Approximation"](https://arxiv.org/abs/2006.02341)
