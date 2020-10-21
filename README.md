@@ -1,4 +1,4 @@
-# NeurIPS - 2020: Non Euclidean Universal Approximation
+# NeurIPS - 2020: [Non Euclidean Universal Approximation](https://arxiv.org/abs/2006.02341)
 ### Numerical Example: *DNN Layer Constrution using our Theory vs. DNN Layer Construction Failing Assumptions(s).*
 
 ---
