@@ -1,7 +1,7 @@
-# NeurIPS2020_Non_Euclidean_Universal_Approximation_Example_DNN_Layer_Comparisons
-Comparison of DNNs whose layers satisfy/violate Assumptions 3.1/3.2 of the paper.
+# NeurIPS - 2020: Non Euclidean Universal Approximation
+## Numerical Example: DNN Layer Constrution using our Theory vs. DNN Layer Construction Failing Assumptions(s).
 
-# Architopes: An Architecture Modification for Composite Pattern Learning, Increased Expressiveness, and Reduced Training Time
+---
 
 ## Requirements
 
