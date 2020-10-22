@@ -14,8 +14,6 @@ To install requirements:
 ``` pyhton
 # cd into the same directory as this README file.
 
-conda create python=3.8 --name architopes \
-conda activate architopes \
 pip install -r requirements.txt
 ```
 ---
