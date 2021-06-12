@@ -2,6 +2,23 @@
 Coauthored by:
 - [Anastasis Kratsios](https://people.math.ethz.ch/~kratsioa/)
 - [Ievgen Bilokopytov](https://apps.ualberta.ca/directory/person/bilokopy)
+
+# Cite As:
+
+    @inproceedings{NEURIPS2020_786ab8c4,
+     author = {Kratsios, Anastasis and Bilokopytov, Ievgen},
+     booktitle = {Advances in Neural Information Processing Systems},
+     editor = {H. Larochelle and M. Ranzato and R. Hadsell and M. F. Balcan and H. Lin},
+     pages = {10635--10646},
+     publisher = {Curran Associates, Inc.},
+     title = {Non-Euclidean Universal Approximation},
+     url = {https://proceedings.neurips.cc/paper/2020/file/786ab8c4d7ee758f80d57e65582e609d-Paper.pdf},
+     volume = {33},
+     year = {2020}
+    }
+
+
+
 ### Numerical Example: *DNN Layer Constrution using our Theory vs. DNN Layer Construction Failing Assumptions(s).*
 
 ---
